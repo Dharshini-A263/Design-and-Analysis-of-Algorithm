@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MST Visualizer (User Input)</title>
+
+<style>
+    body {
+        font-family: Arial;
+        background: #1e3c72;
+        color: white;
+        text-align: center;
+    }
+
+    .container {
+        background: white;
+        color: black;
+        width: 80%;
+        margin: auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    input {
+        margin: 5px;
+        padding: 5px;
+    }
+
+    button {
+        padding: 8px 15px;
+        margin: 5px;
+        background: #2a5298;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .output {
+        margin-top: 20px;
+        text-align: left;
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 8px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>MST Visualizer (Kruskal & Prim)</h1>
+
+<div class="container">
+
+    <h3>Step 1: Enter Number of Vertices</h3>
+    <input type="number" id="vertices" placeholder="Vertices (e.g. 5)">
+    <button onclick="setVertices()">Set</button>
+
+    <h3>Step 2: Add Edges</h3>
+    <input type="number" id="u" placeholder="From">
+    <input type="number" id="v" placeholder="To">
+    <input type="number" id="w" placeholder="Weight">
+    <button onclick="addEdge()">Add Edge</button>
+
+    <h3>Edges:</h3>
+    <ul id="edgeList"></ul>
+
+    <button onclick="runKruskal()">Run Kruskal</button>
+    <button onclick="runPrim()">Run Prim</button>
+
+    <div class="output" id="output"></div>
+
+</div>
+
+<script>
+
+let V = 0;
+let edges = [];
+
+function setVertices() {
+    V = parseInt(document.getElementById("vertices").value);
+    edges = [];
+    document.getElementById("edgeList").innerHTML = "";
+    document.getElementById("output").innerHTML = "Vertices set to " + V;
+}
+
+function addEdge() {
+    let u = parseInt(document.getElementById("u").value);
+    let v = parseInt(document.getElementById("v").value);
+    let w = parseInt(document.getElementById("w").value);
+
+    edges.push([u,v,w]);
+
+    let li = document.createElement("li");
+    li.innerText = `${u} - ${v} (Weight: ${w})`;
+    document.getElementById("edgeList").appendChild(li);
+}
+
+// ---------- KRUSKAL ----------
+function find(parent, i) {
+    if (parent[i] === i) return i;
+    return parent[i] = find(parent, parent[i]);
+}
+
+function union(parent, rank, x, y) {
+    let rootX = find(parent, x);
+    let rootY = find(parent, y);
+
+    if (rank[rootX] < rank[rootY]) parent[rootX] = rootY;
+    else if (rank[rootX] > rank[rootY]) parent[rootY] = rootX;
+    else {
+        parent[rootY] = rootX;
+        rank[rootX]++;
+    }
+}
+
+function kruskalMST() {
+    let result = [];
+    let parent = [];
+    let rank = [];
+
+    for (let i = 0; i < V; i++) {
+        parent[i] = i;
+        rank[i] = 0;
+    }
+
+    edges.sort((a,b) => a[2] - b[2]);
+
+    for (let [u,v,w] of edges) {
+        let x = find(parent, u);
+        let y = find(parent, v);
+
+        if (x !== y) {
+            result.push([u,v,w]);
+            union(parent, rank, x, y);
+        }
+    }
+
+    return result;
+}
+
+// ---------- PRIM ----------
+function primMST() {
+    let selected = Array(V).fill(false);
+    selected[0] = true;
+
+    let result = [];
+
+    for (let i = 0; i < V - 1; i++) {
+        let min = Infinity;
+        let x = -1, y = -1;
+
+        for (let j = 0; j < V; j++) {
+            if (selected[j]) {
+                for (let [u,v,w] of edges) {
+                    if ((u === j && !selected[v]) || (v === j && !selected[u])) {
+                        if (w < min) {
+                            min = w;
+                            x = u;
+                            y = v;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (x !== -1 && y !== -1) {
+            selected[x] = true;
+            selected[y] = true;
+            result.push([x,y,min]);
+        }
+    }
+
+    return result;
+}
+
+// ---------- DISPLAY ----------
+function display(title, mst) {
+    let total = 0;
+    let text = `<h3>${title}</h3><ul>`;
+
+    mst.forEach(([u,v,w]) => {
+        text += `<li>${u} - ${v} (Weight: ${w})</li>`;
+        total += w;
+    });
+
+    text += `</ul><b>Total Cost: ${total}</b>`;
+    return text;
+}
+
+// ---------- BUTTONS ----------
+function runKruskal() {
+    let mst = kruskalMST();
+    document.getElementById("output").innerHTML = display("Kruskal MST", mst);
+}
+
+function runPrim() {
+    let mst = primMST();
+    document.getElementById("output").innerHTML = display("Prim MST", mst);
+}
+
+</script>
+
+</body>
+</html>

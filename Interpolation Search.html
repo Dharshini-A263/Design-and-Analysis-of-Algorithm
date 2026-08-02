@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interpolation Search</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            text-align: center;
+            padding: 50px;
+            color: #fff;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .container {
+            background: #ffffff;
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            width: 420px;
+            margin: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        input {
+            padding: 12px;
+            margin: 10px 0;
+            width: 90%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔍 Interpolation Search</h1>
+    <p>Enter your own sorted array and search a value</p>
+
+    <div class="container">
+
+        <input type="text" id="arrayInput" 
+               placeholder="Enter sorted numbers (e.g. 2,4,6,8,10)">
+
+        <div class="hint">⚠️ Array should be sorted for correct results</div>
+
+        <input type="number" id="targetInput" 
+               placeholder="Enter number to search">
+
+        <br>
+        <button onclick="runSearch()">Search</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function interpolationSearch(arr, x) {
+            let low = 0;
+            let high = arr.length - 1;
+
+            while (low <= high && x >= arr[low] && x <= arr[high]) {
+
+                if (low === high) {
+                    return arr[low] === x ? low : -1;
+                }
+
+                let pos = low + Math.floor(
+                    ((high - low) / (arr[high] - arr[low])) * (x - arr[low])
+                );
+
+                if (arr[pos] === x) return pos;
+
+                if (arr[pos] < x) {
+                    low = pos + 1;
+                } else {
+                    high = pos - 1;
+                }
+            }
+
+            return -1;
+        }
+
+        function runSearch() {
+            let input = document.getElementById("arrayInput").value.trim();
+            let target = parseInt(document.getElementById("targetInput").value);
+
+            let output = document.getElementById("result");
+
+            if (!input) {
+                output.innerHTML = "⚠️ Please enter an array!";
+                output.style.color = "orange";
+                return;
+            }
+
+            let arr = input.split(",").map(Number);
+
+            if (arr.some(isNaN)) {
+                output.innerHTML = "⚠️ Invalid array values!";
+                output.style.color = "orange";
+                return;
+            }
+
+            if (isNaN(target)) {
+                output.innerHTML = "⚠️ Please enter a valid number!";
+                output.style.color = "orange";
+                return;
+            }
+
+            let result = interpolationSearch(arr, target);
+
+            if (result !== -1) {
+                output.innerHTML = `✅ Found at index: ${result}`;
+                output.style.color = "green";
+            } else {
+                output.innerHTML = "❌ Element not found";
+                output.style.color = "red";
+            }
+        }
+    </script>
+
+</body>
+</html>

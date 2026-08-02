@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Matrix Chain Multiplication</title>
+
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #141e30, #243b55);
+        color: white;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .container {
+        background: white;
+        color: black;
+        padding: 25px;
+        border-radius: 15px;
+        width: 600px;
+        margin: auto;
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    input {
+        padding: 10px;
+        width: 85%;
+        margin: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        padding: 10px 20px;
+        background: #ff7b00;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #e66a00;
+    }
+
+    .result {
+        margin-top: 20px;
+        background: #f1f1f1;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    table {
+        margin: 20px auto;
+        border-collapse: collapse;
+    }
+
+    td {
+        border: 1px solid #999;
+        padding: 8px;
+        width: 40px;
+        text-align: center;
+    }
+
+    .highlight {
+        background: #ffe0b3;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>📊 Matrix Chain Multiplication (DP)</h1>
+
+<div class="container">
+
+    <h3>Enter Dimensions (p array)</h3>
+    <p>Example: 10,20,30,40 (means A1:10×20, A2:20×30, A3:30×40)</p>
+
+    <input type="text" id="dims" placeholder="Enter dimensions">
+    <br>
+    <button onclick="computeMCM()">Compute</button>
+
+    <div class="result" id="output"></div>
+
+    <div id="tableContainer"></div>
+
+</div>
+
+<script>
+
+function matrixChainOrder(p) {
+    let n = p.length - 1;
+    let m = Array.from({ length: n }, () => Array(n).fill(0));
+    let s = Array.from({ length: n }, () => Array(n).fill(0));
+
+    for (let L = 2; L <= n; L++) {
+        for (let i = 0; i < n - L + 1; i++) {
+            let j = i + L - 1;
+            m[i][j] = Infinity;
+
+            for (let k = i; k < j; k++) {
+                let cost = m[i][k] + m[k+1][j] + p[i]*p[k+1]*p[j+1];
+
+                if (cost < m[i][j]) {
+                    m[i][j] = cost;
+                    s[i][j] = k;
+                }
+            }
+        }
+    }
+
+    return { m, s };
+}
+
+function printOptimal(s, i, j) {
+    if (i === j) return "A" + (i+1);
+    return "(" + printOptimal(s, i, s[i][j]) + " × " + printOptimal(s, s[i][j] + 1, j) + ")";
+}
+
+function computeMCM() {
+    let input = document.getElementById("dims").value;
+
+    if (!input) {
+        alert("Enter dimensions!");
+        return;
+    }
+
+    let p = input.split(',').map(Number);
+
+    if (p.length < 2 || p.some(isNaN)) {
+        alert("Invalid input!");
+        return;
+    }
+
+    let { m, s } = matrixChainOrder(p);
+    let n = p.length - 1;
+
+    let optimal = printOptimal(s, 0, n-1);
+
+    document.getElementById("output").innerHTML = `
+        ✅ Minimum Multiplication Cost: <b>${m[0][n-1]}</b><br>
+        📐 Optimal Parenthesization: <b>${optimal}</b>
+    `;
+
+    // Display DP Table
+    let tableHTML = "<h3>DP Cost Table</h3><table>";
+
+    for (let i = 0; i < n; i++) {
+        tableHTML += "<tr>";
+        for (let j = 0; j < n; j++) {
+            if (j < i) {
+                tableHTML += "<td>-</td>";
+            } else {
+                tableHTML += `<td>${m[i][j]}</td>`;
+            }
+        }
+        tableHTML += "</tr>";
+    }
+
+    tableHTML += "</table>";
+
+    document.getElementById("tableContainer").innerHTML = tableHTML;
+}
+
+</script>
+
+</body>
+</html>

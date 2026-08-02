@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dijkstra with Path</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    text-align: center;
+}
+
+.container {
+    background: white;
+    color: black;
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+input {
+    margin: 5px;
+    padding: 5px;
+}
+
+button {
+    padding: 8px 15px;
+    margin: 5px;
+    background: #2c5364;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.output {
+    margin-top: 20px;
+    text-align: left;
+    background: #f4f4f4;
+    padding: 10px;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Dijkstra’s Algorithm (With Path)</h1>
+
+<div class="container">
+
+<h3>Step 1: Vertices</h3>
+<input type="number" id="vertices">
+<button onclick="setVertices()">Set</button>
+
+<h3>Step 2: Add Edge</h3>
+<input type="number" id="u" placeholder="From">
+<input type="number" id="v" placeholder="To">
+<input type="number" id="w" placeholder="Weight">
+<button onclick="addEdge()">Add</button>
+
+<ul id="edgeList"></ul>
+
+<h3>Step 3: Source</h3>
+<input type="number" id="source">
+<button onclick="run()">Run</button>
+
+<div class="output" id="output"></div>
+
+</div>
+
+<script>
+
+let V = 0;
+let graph = [];
+
+function setVertices() {
+    V = parseInt(document.getElementById("vertices").value);
+    graph = Array.from({length: V}, () => []);
+    document.getElementById("edgeList").innerHTML = "";
+}
+
+function addEdge() {
+    let u = parseInt(document.getElementById("u").value) - 1;
+    let v = parseInt(document.getElementById("v").value) - 1;
+    let w = parseInt(document.getElementById("w").value);
+
+    graph[u].push([v,w]);
+    graph[v].push([u,w]);
+
+    let li = document.createElement("li");
+    li.innerText = `${u+1} - ${v+1} (Weight: ${w})`;
+    document.getElementById("edgeList").appendChild(li);
+}
+
+// -------- DIJKSTRA WITH PATH --------
+function dijkstra(src) {
+    let dist = Array(V).fill(Infinity);
+    let visited = Array(V).fill(false);
+    let parent = Array(V).fill(-1);
+
+    dist[src] = 0;
+
+    for (let i = 0; i < V - 1; i++) {
+        let u = -1;
+        let min = Infinity;
+
+        for (let j = 0; j < V; j++) {
+            if (!visited[j] && dist[j] < min) {
+                min = dist[j];
+                u = j;
+            }
+        }
+
+        if (u === -1) break;
+
+        visited[u] = true;
+
+        for (let [v,w] of graph[u]) {
+            if (!visited[v] && dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                parent[v] = u;  // store path
+            }
+        }
+    }
+
+    return {dist, parent};
+}
+
+// -------- BUILD PATH --------
+function getPath(parent, j) {
+    let path = [];
+    while (j !== -1) {
+        path.push(j + 1);
+        j = parent[j];
+    }
+    return path.reverse().join(" → ");
+}
+
+// -------- RUN --------
+function run() {
+    let src = parseInt(document.getElementById("source").value) - 1;
+
+    if (src < 0 || src >= V) {
+        alert("Invalid source!");
+        return;
+    }
+
+    let {dist, parent} = dijkstra(src);
+
+    let output = `<h3>Results from Node ${src+1}</h3><ul>`;
+
+    for (let i = 0; i < V; i++) {
+        let path = (dist[i] === Infinity)
+            ? "No Path"
+            : getPath(parent, i);
+
+        let d = (dist[i] === Infinity) ? "∞" : dist[i];
+
+        output += `<li>
+            To ${i+1} → Distance: ${d} <br>
+            Path: ${path}
+        </li><br>`;
+    }
+
+    output += "</ul>";
+
+    document.getElementById("output").innerHTML = output;
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Min-Max using Divide & Conquer</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        color: white;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .container {
+        background: white;
+        color: black;
+        padding: 25px;
+        border-radius: 12px;
+        width: 500px;
+        margin: auto;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    input {
+        padding: 10px;
+        width: 80%;
+        margin: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        padding: 10px 20px;
+        background: #1e90ff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #0f6cd1;
+    }
+
+    .result {
+        margin-top: 20px;
+        font-size: 18px;
+        background: #f1f1f1;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .array-box {
+        margin-top: 10px;
+        padding: 10px;
+        background: #eee;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🔍 Min-Max using Divide & Conquer</h1>
+
+<div class="container">
+    
+    <h3>Enter Numbers (comma separated)</h3>
+    <input type="text" id="arrayInput" placeholder="e.g. 3,5,1,8,2,9">
+    <br>
+    <button onclick="findMinMax()">Find Min & Max</button>
+
+    <div class="array-box" id="arrayDisplay"></div>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+let comparisons = 0;
+
+function minMax(arr, low, high) {
+    let min, max;
+
+    // Only one element
+    if (low === high) {
+        return { min: arr[low], max: arr[low] };
+    }
+
+    // Two elements
+    if (high === low + 1) {
+        comparisons++;
+        if (arr[low] < arr[high]) {
+            return { min: arr[low], max: arr[high] };
+        } else {
+            return { min: arr[high], max: arr[low] };
+        }
+    }
+
+    // Divide
+    let mid = Math.floor((low + high) / 2);
+
+    let left = minMax(arr, low, mid);
+    let right = minMax(arr, mid + 1, high);
+
+    comparisons += 2;
+
+    return {
+        min: Math.min(left.min, right.min),
+        max: Math.max(left.max, right.max)
+    };
+}
+
+function findMinMax() {
+    let input = document.getElementById("arrayInput").value;
+
+    if (!input) {
+        alert("Please enter numbers!");
+        return;
+    }
+
+    let arr = input.split(',').map(Number);
+
+    if (arr.some(isNaN)) {
+        alert("Invalid input!");
+        return;
+    }
+
+    comparisons = 0;
+
+    let result = minMax(arr, 0, arr.length - 1);
+
+    document.getElementById("arrayDisplay").innerHTML =
+        "Array: [" + arr.join(", ") + "]";
+
+    document.getElementById("result").innerHTML = `
+        ✅ Minimum Value: <b>${result.min}</b><br>
+        ✅ Maximum Value: <b>${result.max}</b><br>
+        🔢 Comparisons Made: <b>${comparisons}</b>
+    `;
+}
+</script>
+
+</body>
+</html>
