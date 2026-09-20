@@ -1,0 +1,1989 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bin Packing Approximation Visualizer</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #fff;
+        background:
+            radial-gradient(circle at 10% 10%, rgba(99,102,241,.30), transparent 30%),
+            radial-gradient(circle at 90% 10%, rgba(236,72,153,.22), transparent 30%),
+            radial-gradient(circle at 50% 100%, rgba(6,182,212,.18), transparent 35%),
+            #070b16;
+        padding: 28px;
+    }
+
+    .container {
+        max-width: 1450px;
+        margin: auto;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 7px 17px;
+        border-radius: 30px;
+        background: rgba(99,102,241,.13);
+        border: 1px solid rgba(129,140,248,.30);
+        color: #c7d2fe;
+        font-size: 12px;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+    }
+
+    h1 {
+        font-size: clamp(30px, 5vw, 58px);
+        font-weight: 850;
+        background: linear-gradient(90deg, #818cf8, #f472b6, #22d3ee);
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 10px;
+    }
+
+    header p {
+        color: #9ca8bf;
+        font-size: 15px;
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 22px;
+    }
+
+    .card {
+        background: rgba(15,23,42,.72);
+        border: 1px solid rgba(148,163,184,.14);
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.30);
+        backdrop-filter: blur(18px);
+    }
+
+    .control-card {
+        align-self: start;
+        position: sticky;
+        top: 20px;
+    }
+
+    .card-title {
+        font-size: 19px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .control-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        display: block;
+        color: #9ca8bf;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+        width: 100%;
+        padding: 12px 13px;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        background: #0b1222;
+        color: #fff;
+        outline: none;
+        font-size: 14px;
+    }
+
+    input:focus,
+    select:focus {
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(129,140,248,.10);
+    }
+
+    .hint {
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.5;
+        margin-top: 6px;
+    }
+
+    .items-input {
+        min-height: 90px;
+        resize: vertical;
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        background: #0b1222;
+        color: #fff;
+        outline: none;
+        font-family: monospace;
+        line-height: 1.6;
+    }
+
+    .items-input:focus {
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(129,140,248,.10);
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        margin-top: 18px;
+    }
+
+    button {
+        border: none;
+        color: white;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+    }
+
+    button:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .primary {
+        background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    }
+
+    .pause {
+        background: linear-gradient(135deg,#ec4899,#f43f5e);
+    }
+
+    .secondary {
+        background: #1e293b;
+        border: 1px solid #334155;
+    }
+
+    .danger {
+        background: #3f1d2e;
+        border: 1px solid #7f1d4d;
+    }
+
+    .speed-area {
+        margin-top: 18px;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: #818cf8;
+    }
+
+    .speed-label {
+        display: flex;
+        justify-content: space-between;
+        color: #64748b;
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    .info {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 15px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #263449;
+    }
+
+    .info strong {
+        color: #c7d2fe;
+    }
+
+    .info p {
+        color: #8793aa;
+        font-size: 12px;
+        line-height: 1.7;
+        margin-top: 7px;
+    }
+
+    .main-card {
+        min-width: 0;
+    }
+
+    .top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .status {
+        padding: 8px 14px;
+        border-radius: 30px;
+        background: rgba(34,211,238,.08);
+        border: 1px solid rgba(34,211,238,.20);
+        color: #67e8f9;
+        font-size: 12px;
+    }
+
+    .item-progress {
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stat {
+        padding: 14px;
+        text-align: center;
+        border-radius: 15px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #253247;
+    }
+
+    .stat-number {
+        font-size: 23px;
+        font-weight: 800;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .7px;
+        margin-top: 4px;
+    }
+
+    .comparison {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .algo-card {
+        padding: 15px;
+        border-radius: 16px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #253247;
+    }
+
+    .algo-name {
+        color: #cbd5e1;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .algo-bins {
+        font-size: 29px;
+        font-weight: 850;
+        color: #fff;
+    }
+
+    .algo-sub {
+        color: #64748b;
+        font-size: 10px;
+        margin-top: 3px;
+    }
+
+    .best-tag {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 4px 8px;
+        border-radius: 20px;
+        background: rgba(34,197,94,.10);
+        border: 1px solid rgba(34,197,94,.20);
+        color: #86efac;
+        font-size: 9px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .items-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 20px;
+        padding: 13px;
+        border-radius: 15px;
+        background: rgba(2,6,23,.45);
+        border: 1px solid #253247;
+        min-height: 50px;
+    }
+
+    .item-chip {
+        padding: 7px 10px;
+        border-radius: 9px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #cbd5e1;
+        font-family: monospace;
+        font-size: 11px;
+    }
+
+    .item-chip.active {
+        background: rgba(99,102,241,.25);
+        border-color: #818cf8;
+        color: #fff;
+        box-shadow: 0 0 12px rgba(99,102,241,.20);
+    }
+
+    .bin-area {
+        min-height: 390px;
+        padding: 18px;
+        border-radius: 18px;
+        background:
+            radial-gradient(circle at center, rgba(99,102,241,.06), transparent 60%),
+            #080d1a;
+        border: 1px solid #243044;
+    }
+
+    .bins-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 14px;
+    }
+
+    .bin {
+        min-height: 150px;
+        border-radius: 15px;
+        padding: 12px;
+        background: rgba(15,23,42,.80);
+        border: 1px solid #334155;
+        transition: .3s;
+    }
+
+    .bin.highlight {
+        border-color: #818cf8;
+        box-shadow: 0 0 25px rgba(99,102,241,.20);
+        transform: translateY(-2px);
+    }
+
+    .bin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .bin-title {
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .bin-space {
+        color: #67e8f9;
+        font-size: 10px;
+    }
+
+    .capacity-bar {
+        width: 100%;
+        height: 6px;
+        border-radius: 10px;
+        background: #1e293b;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .capacity-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg,#6366f1,#22d3ee);
+        transition: width .3s;
+    }
+
+    .bin-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .packed-item {
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: #1e293b;
+        border: 1px solid #475569;
+        font-size: 10px;
+        font-family: monospace;
+        animation: pop .25s ease;
+    }
+
+    @keyframes pop {
+        from {
+            transform: scale(.6);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .empty-message {
+        color: #64748b;
+        font-size: 13px;
+        text-align: center;
+        padding: 90px 20px;
+    }
+
+    .utilization {
+        margin-top: 20px;
+        padding: 16px;
+        border-radius: 15px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #253247;
+    }
+
+    .util-row {
+        display: grid;
+        grid-template-columns: 150px 1fr 70px;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .util-name {
+        color: #cbd5e1;
+        font-size: 11px;
+    }
+
+    .util-bar {
+        height: 8px;
+        border-radius: 10px;
+        background: #1e293b;
+        overflow: hidden;
+    }
+
+    .util-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg,#8b5cf6,#22d3ee);
+    }
+
+    .util-value {
+        text-align: right;
+        color: #67e8f9;
+        font-size: 11px;
+    }
+
+    .complexity {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 15px;
+        background: linear-gradient(
+            135deg,
+            rgba(99,102,241,.08),
+            rgba(236,72,153,.06)
+        );
+        border: 1px solid rgba(129,140,248,.14);
+    }
+
+    .complexity h3 {
+        font-size: 14px;
+        margin-bottom: 7px;
+    }
+
+    .complexity p {
+        color: #8995ab;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    footer {
+        text-align: center;
+        color: #475569;
+        font-size: 11px;
+        margin-top: 25px;
+    }
+
+    @media (max-width: 1100px) {
+        .comparison {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .layout {
+            grid-template-columns: 1fr;
+        }
+
+        .control-card {
+            position: static;
+        }
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 14px;
+        }
+
+        .stats,
+        .comparison {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .button-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .util-row {
+            grid-template-columns: 100px 1fr 55px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <div class="badge">📦 APPROXIMATION ALGORITHM VISUALIZER</div>
+    <h1>Efficient Bin Packing</h1>
+    <p>
+        Pack items into the minimum number of fixed-capacity bins using
+        approximation algorithms.
+    </p>
+</header>
+
+
+<div class="layout">
+
+    <!-- CONTROL PANEL -->
+
+    <div class="card control-card">
+
+        <div class="card-title">⚙️ Problem Setup</div>
+
+        <div class="control-group">
+
+            <label for="capacity">
+                Bin Capacity
+            </label>
+
+            <input
+                type="number"
+                id="capacity"
+                min="1"
+                max="1000"
+                value="10"
+            >
+
+            <div class="hint">
+                Every bin can hold items whose total size
+                does not exceed this capacity.
+            </div>
+
+        </div>
+
+
+        <div class="control-group">
+
+            <label for="itemsInput">
+                Item Sizes
+            </label>
+
+            <textarea
+                id="itemsInput"
+                class="items-input"
+            >2, 5, 4, 7, 1, 3, 8, 6, 2, 5, 4, 7</textarea>
+
+            <div class="hint">
+                Enter item sizes separated by commas or spaces.
+            </div>
+
+        </div>
+
+
+        <div class="button-grid">
+
+            <button
+                class="secondary"
+                onclick="generateRandomItems()">
+                🎲 Random
+            </button>
+
+            <button
+                class="secondary"
+                onclick="loadExample()">
+                📋 Example
+            </button>
+
+            <button
+                class="primary"
+                id="startBtn"
+                onclick="startPacking()">
+                ▶ Start
+            </button>
+
+            <button
+                class="pause"
+                id="pauseBtn"
+                onclick="togglePause()"
+                disabled>
+                ⏸ Pause
+            </button>
+
+            <button
+                class="danger"
+                onclick="resetPacking()">
+                ↻ Reset
+            </button>
+
+        </div>
+
+
+        <div class="speed-area">
+
+            <label>
+                Animation Speed
+            </label>
+
+            <input
+                type="range"
+                id="speed"
+                min="50"
+                max="1000"
+                value="300"
+                step="50"
+            >
+
+            <div class="speed-label">
+                <span>Fast</span>
+                <span id="speedText">300 ms</span>
+                <span>Slow</span>
+            </div>
+
+        </div>
+
+
+        <div class="info">
+
+            <strong>💡 Approximation Techniques</strong>
+
+            <p>
+                <b>First Fit (FF):</b> Put each item in the first bin
+                where it fits.
+                <br><br>
+
+                <b>First Fit Decreasing (FFD):</b> Sort items from
+                largest to smallest, then apply First Fit.
+                <br><br>
+
+                <b>Best Fit (BF):</b> Put an item into the bin that
+                leaves the smallest remaining space.
+                <br><br>
+
+                <b>Best Fit Decreasing (BFD):</b> Sort decreasingly,
+                then apply Best Fit.
+            </p>
+
+        </div>
+
+
+        <div class="complexity">
+
+            <h3>📊 Complexity</h3>
+
+            <p>
+                <strong>First Fit:</strong> O(n²) in this implementation<br>
+                <strong>Best Fit:</strong> O(n²) in this implementation<br>
+                <strong>FFD:</strong> O(n log n + n²)<br>
+                <strong>BFD:</strong> O(n log n + n²)
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAIN VISUALIZATION -->
+
+    <div class="card main-card">
+
+        <div class="top-row">
+
+            <div
+                class="status"
+                id="status">
+                Ready to pack items
+            </div>
+
+            <div
+                class="item-progress"
+                id="progress">
+                Item: —
+            </div>
+
+        </div>
+
+
+        <!-- LIVE STATS -->
+
+        <div class="stats">
+
+            <div class="stat">
+                <div
+                    class="stat-number"
+                    id="binsUsed">
+                    0
+                </div>
+                <div class="stat-label">
+                    Bins Used
+                </div>
+            </div>
+
+            <div class="stat">
+                <div
+                    class="stat-number"
+                    id="itemsPacked">
+                    0
+                </div>
+                <div class="stat-label">
+                    Items Packed
+                </div>
+            </div>
+
+            <div class="stat">
+                <div
+                    class="stat-number"
+                    id="totalSize">
+                    0
+                </div>
+                <div class="stat-label">
+                    Total Size
+                </div>
+            </div>
+
+            <div class="stat">
+                <div
+                    class="stat-number"
+                    id="utilizationValue">
+                    0%
+                </div>
+                <div class="stat-label">
+                    Utilization
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ALGORITHM COMPARISON -->
+
+        <div class="section-title">
+            🏆 Algorithm Comparison
+        </div>
+
+        <div
+            class="comparison"
+            id="comparison">
+
+            <div class="algo-card">
+                <div class="algo-name">
+                    First Fit
+                </div>
+
+                <div
+                    class="algo-bins"
+                    id="ffResult">
+                    —
+                </div>
+
+                <div class="algo-sub">
+                    bins
+                </div>
+            </div>
+
+
+            <div class="algo-card">
+                <div class="algo-name">
+                    First Fit Decreasing
+                </div>
+
+                <div
+                    class="algo-bins"
+                    id="ffdResult">
+                    —
+                </div>
+
+                <div class="algo-sub">
+                    bins
+                </div>
+            </div>
+
+
+            <div class="algo-card">
+                <div class="algo-name">
+                    Best Fit
+                </div>
+
+                <div
+                    class="algo-bins"
+                    id="bfResult">
+                    —
+                </div>
+
+                <div class="algo-sub">
+                    bins
+                </div>
+            </div>
+
+
+            <div class="algo-card">
+                <div class="algo-name">
+                    Best Fit Decreasing
+                </div>
+
+                <div
+                    class="algo-bins"
+                    id="bfdResult">
+                    —
+                </div>
+
+                <div class="algo-sub">
+                    bins
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ITEMS -->
+
+        <div class="section-title">
+            🔢 Items
+        </div>
+
+        <div
+            class="items-strip"
+            id="itemsStrip">
+        </div>
+
+
+        <!-- BINS -->
+
+        <div class="section-title">
+            📦 Current Bin Arrangement
+        </div>
+
+        <div class="bin-area">
+
+            <div
+                class="bins-container"
+                id="binsContainer">
+
+                <div class="empty-message">
+                    Start the algorithm to see items being packed.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- UTILIZATION -->
+
+        <div class="utilization">
+
+            <div class="section-title">
+                📈 Bin Utilization Comparison
+            </div>
+
+            <div id="utilizationRows">
+
+                <div
+                    style="
+                        color:#64748b;
+                        font-size:12px;
+                    ">
+                    Run the algorithm to compare utilization.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+    Bin Packing • Approximation Algorithms • First Fit • Best Fit • Decreasing Variants
+</footer>
+
+</div>
+
+
+<script>
+
+/* ============================================
+   GLOBAL VARIABLES
+============================================ */
+
+let capacity = 10;
+let items = [];
+
+let bins = [];
+
+let running = false;
+let paused = false;
+
+let runId = 0;
+
+
+/* ============================================
+   DOM
+============================================ */
+
+const capacityInput =
+    document.getElementById("capacity");
+
+const itemsInput =
+    document.getElementById("itemsInput");
+
+const speedInput =
+    document.getElementById("speed");
+
+const speedText =
+    document.getElementById("speedText");
+
+const startBtn =
+    document.getElementById("startBtn");
+
+const pauseBtn =
+    document.getElementById("pauseBtn");
+
+const statusText =
+    document.getElementById("status");
+
+const progressText =
+    document.getElementById("progress");
+
+const binsUsedText =
+    document.getElementById("binsUsed");
+
+const itemsPackedText =
+    document.getElementById("itemsPacked");
+
+const totalSizeText =
+    document.getElementById("totalSize");
+
+const utilizationValueText =
+    document.getElementById("utilizationValue");
+
+const binsContainer =
+    document.getElementById("binsContainer");
+
+const itemsStrip =
+    document.getElementById("itemsStrip");
+
+const utilizationRows =
+    document.getElementById("utilizationRows");
+
+
+/* ============================================
+   SPEED
+============================================ */
+
+speedInput.addEventListener("input", () => {
+
+    speedText.textContent =
+        speedInput.value + " ms";
+
+});
+
+
+/* ============================================
+   DELAY
+============================================ */
+
+function delay(ms) {
+
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+
+}
+
+
+/* ============================================
+   PAUSE
+============================================ */
+
+async function waitWhilePaused(id) {
+
+    while (
+        paused &&
+        running &&
+        id === runId
+    ) {
+
+        await delay(100);
+    }
+
+}
+
+
+/* ============================================
+   PARSE INPUT
+============================================ */
+
+function parseInput() {
+
+    capacity =
+        Number(capacityInput.value);
+
+    if (
+        !Number.isFinite(capacity) ||
+        capacity <= 0
+    ) {
+
+        alert(
+            "Please enter a valid bin capacity."
+        );
+
+        return false;
+    }
+
+
+    items =
+        itemsInput.value
+            .split(/[\s,]+/)
+            .map(Number)
+            .filter(x => !Number.isNaN(x));
+
+
+    if (items.length === 0) {
+
+        alert(
+            "Please enter at least one item."
+        );
+
+        return false;
+    }
+
+
+    if (
+        items.some(
+            item =>
+                item <= 0 ||
+                item > capacity
+        )
+    ) {
+
+        alert(
+            "Every item must be greater than 0 and not exceed the bin capacity."
+        );
+
+        return false;
+    }
+
+    return true;
+}
+
+
+/* ============================================
+   CREATE EMPTY BIN
+============================================ */
+
+function createBin() {
+
+    return {
+        items: [],
+        used: 0
+    };
+
+}
+
+
+/* ============================================
+   FIRST FIT
+============================================ */
+
+function firstFit(inputItems) {
+
+    const result = [];
+
+    inputItems.forEach(item => {
+
+        let placed = false;
+
+        for (let bin of result) {
+
+            if (
+                bin.used + item <= capacity
+            ) {
+
+                bin.items.push(item);
+                bin.used += item;
+
+                placed = true;
+
+                break;
+            }
+        }
+
+
+        if (!placed) {
+
+            const newBin =
+                createBin();
+
+            newBin.items.push(item);
+            newBin.used = item;
+
+            result.push(newBin);
+        }
+
+    });
+
+    return result;
+}
+
+
+/* ============================================
+   FIRST FIT DECREASING
+============================================ */
+
+function firstFitDecreasing(inputItems) {
+
+    const sorted =
+        [...inputItems].sort(
+            (a, b) => b - a
+        );
+
+    return firstFit(sorted);
+}
+
+
+/* ============================================
+   BEST FIT
+============================================ */
+
+function bestFit(inputItems) {
+
+    const result = [];
+
+    inputItems.forEach(item => {
+
+        let bestIndex = -1;
+        let smallestRemaining = Infinity;
+
+
+        for (
+            let i = 0;
+            i < result.length;
+            i++
+        ) {
+
+            const remaining =
+                capacity -
+                (result[i].used + item);
+
+
+            if (
+                remaining >= 0 &&
+                remaining < smallestRemaining
+            ) {
+
+                smallestRemaining =
+                    remaining;
+
+                bestIndex = i;
+            }
+        }
+
+
+        if (bestIndex !== -1) {
+
+            result[bestIndex].items.push(item);
+
+            result[bestIndex].used += item;
+
+        } else {
+
+            const newBin =
+                createBin();
+
+            newBin.items.push(item);
+            newBin.used = item;
+
+            result.push(newBin);
+        }
+
+    });
+
+    return result;
+}
+
+
+/* ============================================
+   BEST FIT DECREASING
+============================================ */
+
+function bestFitDecreasing(inputItems) {
+
+    const sorted =
+        [...inputItems].sort(
+            (a, b) => b - a
+        );
+
+    return bestFit(sorted);
+}
+
+
+/* ============================================
+   RENDER ITEMS
+============================================ */
+
+function renderItems(
+    activeIndex = -1,
+    order = items
+) {
+
+    itemsStrip.innerHTML = "";
+
+    order.forEach((item, index) => {
+
+        const chip =
+            document.createElement("div");
+
+        chip.className =
+            "item-chip";
+
+        if (index === activeIndex) {
+            chip.classList.add("active");
+        }
+
+        chip.textContent =
+            `Item ${index + 1}: ${item}`;
+
+        itemsStrip.appendChild(chip);
+    });
+}
+
+
+/* ============================================
+   RENDER BINS
+============================================ */
+
+function renderBins(
+    currentBins = bins,
+    highlighted = -1
+) {
+
+    binsContainer.innerHTML = "";
+
+    if (currentBins.length === 0) {
+
+        binsContainer.innerHTML = `
+            <div class="empty-message">
+                No bins created yet.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    currentBins.forEach(
+        (bin, index) => {
+
+            const binElement =
+                document.createElement("div");
+
+            binElement.className =
+                "bin";
+
+
+            if (index === highlighted) {
+                binElement.classList.add("highlight");
+            }
+
+
+            const header =
+                document.createElement("div");
+
+            header.className =
+                "bin-header";
+
+
+            const title =
+                document.createElement("div");
+
+            title.className =
+                "bin-title";
+
+            title.textContent =
+                `📦 Bin ${index + 1}`;
+
+
+            const space =
+                document.createElement("div");
+
+            space.className =
+                "bin-space";
+
+            space.textContent =
+                `${bin.used}/${capacity}`;
+
+
+            header.appendChild(title);
+            header.appendChild(space);
+
+
+            const capacityBar =
+                document.createElement("div");
+
+            capacityBar.className =
+                "capacity-bar";
+
+
+            const fill =
+                document.createElement("div");
+
+            fill.className =
+                "capacity-fill";
+
+            fill.style.width =
+                Math.min(
+                    100,
+                    (bin.used / capacity) * 100
+                ) + "%";
+
+
+            capacityBar.appendChild(fill);
+
+
+            const itemContainer =
+                document.createElement("div");
+
+            itemContainer.className =
+                "bin-items";
+
+
+            bin.items.forEach(item => {
+
+                const packed =
+                    document.createElement("div");
+
+                packed.className =
+                    "packed-item";
+
+                packed.textContent =
+                    item;
+
+                itemContainer.appendChild(
+                    packed
+                );
+
+            });
+
+
+            binElement.appendChild(header);
+            binElement.appendChild(capacityBar);
+            binElement.appendChild(itemContainer);
+
+            binsContainer.appendChild(
+                binElement
+            );
+        }
+    );
+}
+
+
+/* ============================================
+   LIVE STATS
+============================================ */
+
+function updateLiveStats() {
+
+    const usedBins =
+        bins.length;
+
+    const packedItems =
+        bins.reduce(
+            (sum, bin) =>
+                sum + bin.items.length,
+            0
+        );
+
+    const total =
+        items.reduce(
+            (sum, item) =>
+                sum + item,
+            0
+        );
+
+    const utilization =
+        usedBins === 0
+            ? 0
+            : (
+                total /
+                (usedBins * capacity)
+            ) * 100;
+
+
+    binsUsedText.textContent =
+        usedBins;
+
+    itemsPackedText.textContent =
+        packedItems;
+
+    totalSizeText.textContent =
+        total;
+
+    utilizationValueText.textContent =
+        utilization.toFixed(1) + "%";
+}
+
+
+/* ============================================
+   UPDATE COMPARISON
+============================================ */
+
+function updateComparison(results) {
+
+    document.getElementById("ffResult")
+        .textContent =
+        results.ff.length;
+
+    document.getElementById("ffdResult")
+        .textContent =
+        results.ffd.length;
+
+    document.getElementById("bfResult")
+        .textContent =
+        results.bf.length;
+
+    document.getElementById("bfdResult")
+        .textContent =
+        results.bfd.length;
+}
+
+
+/* ============================================
+   UTILIZATION COMPARISON
+============================================ */
+
+function renderUtilization(results) {
+
+    utilizationRows.innerHTML = "";
+
+    const algorithms = [
+        ["First Fit", results.ff],
+        ["First Fit Decreasing", results.ffd],
+        ["Best Fit", results.bf],
+        ["Best Fit Decreasing", results.bfd]
+    ];
+
+
+    algorithms.forEach(
+        ([name, result]) => {
+
+            const total =
+                items.reduce(
+                    (sum, item) =>
+                        sum + item,
+                    0
+                );
+
+            const utilization =
+                (
+                    total /
+                    (result.length * capacity)
+                ) * 100;
+
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "util-row";
+
+
+            row.innerHTML = `
+                <div class="util-name">
+                    ${name}
+                </div>
+
+                <div class="util-bar">
+                    <div
+                        class="util-fill"
+                        style="width:${utilization}%">
+                    </div>
+                </div>
+
+                <div class="util-value">
+                    ${utilization.toFixed(1)}%
+                </div>
+            `;
+
+            utilizationRows.appendChild(row);
+        }
+    );
+}
+
+
+/* ============================================
+   RUN ALL ALGORITHMS
+============================================ */
+
+function calculateAll() {
+
+    return {
+
+        ff:
+            firstFit(items),
+
+        ffd:
+            firstFitDecreasing(items),
+
+        bf:
+            bestFit(items),
+
+        bfd:
+            bestFitDecreasing(items)
+
+    };
+}
+
+
+/* ============================================
+   ANIMATED FIRST FIT
+============================================ */
+
+async function animateFirstFit(
+    inputItems,
+    id
+) {
+
+    bins = [];
+
+    renderBins();
+    updateLiveStats();
+
+    for (
+        let index = 0;
+        index < inputItems.length;
+        index++
+    ) {
+
+        await waitWhilePaused(id);
+
+        if (
+            !running ||
+            id !== runId
+        ) {
+            return;
+        }
+
+
+        const item =
+            inputItems[index];
+
+
+        progressText.textContent =
+            `Item: ${index + 1}/${inputItems.length}`;
+
+
+        renderItems(
+            index,
+            inputItems
+        );
+
+
+        statusText.textContent =
+            `📦 Packing item ${item} using First Fit...`;
+
+
+        await delay(
+            Number(speedInput.value)
+        );
+
+
+        let placed = false;
+
+
+        for (
+            let binIndex = 0;
+            binIndex < bins.length;
+            binIndex++
+        ) {
+
+            if (
+                bins[binIndex].used +
+                item <=
+                capacity
+            ) {
+
+                bins[binIndex].items.push(
+                    item
+                );
+
+                bins[binIndex].used +=
+                    item;
+
+                placed = true;
+
+                renderBins(
+                    bins,
+                    binIndex
+                );
+
+                updateLiveStats();
+
+                statusText.textContent =
+                    `✓ Item ${item} placed in Bin ${binIndex + 1}`;
+
+                await delay(
+                    Number(speedInput.value)
+                );
+
+                break;
+            }
+
+            renderBins(
+                bins,
+                binIndex
+            );
+
+            await delay(
+                Math.max(
+                    50,
+                    Number(speedInput.value) / 2
+                )
+            );
+        }
+
+
+        if (!placed) {
+
+            bins.push(
+                createBin()
+            );
+
+            const newBin =
+                bins[bins.length - 1];
+
+            newBin.items.push(item);
+            newBin.used = item;
+
+
+            renderBins(
+                bins,
+                bins.length - 1
+            );
+
+            updateLiveStats();
+
+            statusText.textContent =
+                `➕ New Bin ${bins.length} created for item ${item}`;
+
+            await delay(
+                Number(speedInput.value)
+            );
+        }
+    }
+}
+
+
+/* ============================================
+   START
+============================================ */
+
+async function startPacking() {
+
+    if (running) return;
+
+
+    if (!parseInput()) {
+        return;
+    }
+
+
+    const results =
+        calculateAll();
+
+
+    updateComparison(results);
+    renderUtilization(results);
+
+
+    running = true;
+    paused = false;
+
+    runId++;
+
+    const id =
+        runId;
+
+
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+
+    capacityInput.disabled = true;
+    itemsInput.disabled = true;
+
+
+    statusText.textContent =
+        "🚀 Starting First Fit animation...";
+
+
+    bins = [];
+
+    renderBins();
+    renderItems();
+    updateLiveStats();
+
+
+    await delay(500);
+
+
+    await animateFirstFit(
+        items,
+        id
+    );
+
+
+    if (
+        running &&
+        id === runId
+    ) {
+
+        running = false;
+        paused = false;
+
+        statusText.textContent =
+            `✅ Completed — First Fit used ${bins.length} bins`;
+
+        progressText.textContent =
+            `All ${items.length} items packed`;
+
+
+        /*
+           Show comparison results again.
+        */
+
+        updateComparison(results);
+        renderUtilization(results);
+
+
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+
+        capacityInput.disabled = false;
+        itemsInput.disabled = false;
+    }
+}
+
+
+/* ============================================
+   PAUSE / RESUME
+============================================ */
+
+function togglePause() {
+
+    if (!running) return;
+
+    paused = !paused;
+
+
+    if (paused) {
+
+        pauseBtn.textContent =
+            "▶ Resume";
+
+        statusText.textContent =
+            "⏸ Packing paused";
+
+    } else {
+
+        pauseBtn.textContent =
+            "⏸ Pause";
+
+        statusText.textContent =
+            "▶ Packing resumed";
+    }
+}
+
+
+/* ============================================
+   RESET
+============================================ */
+
+function resetPacking() {
+
+    runId++;
+
+    running = false;
+    paused = false;
+
+    bins = [];
+
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+
+    capacityInput.disabled = false;
+    itemsInput.disabled = false;
+
+    pauseBtn.textContent =
+        "⏸ Pause";
+
+    statusText.textContent =
+        "Ready to pack items";
+
+    progressText.textContent =
+        "Item: —";
+
+    binsContainer.innerHTML = `
+        <div class="empty-message">
+            Start the algorithm to see items being packed.
+        </div>
+    `;
+
+    document.getElementById("ffResult")
+        .textContent = "—";
+
+    document.getElementById("ffdResult")
+        .textContent = "—";
+
+    document.getElementById("bfResult")
+        .textContent = "—";
+
+    document.getElementById("bfdResult")
+        .textContent = "—";
+
+    utilizationRows.innerHTML = `
+        <div style="color:#64748b;font-size:12px;">
+            Run the algorithm to compare utilization.
+        </div>
+    `;
+
+    renderItems();
+
+    updateLiveStats();
+}
+
+
+/* ============================================
+   RANDOM ITEMS
+============================================ */
+
+function generateRandomItems() {
+
+    if (running) return;
+
+    capacity =
+        Number(capacityInput.value);
+
+    if (
+        !Number.isFinite(capacity) ||
+        capacity <= 0
+    ) {
+
+        alert(
+            "Enter a valid bin capacity first."
+        );
+
+        return;
+    }
+
+
+    const count =
+        Math.floor(
+            Math.random() * 9
+        ) + 10;
+
+
+    const generated = [];
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const value =
+            Math.floor(
+                Math.random() *
+                (capacity - 1)
+            ) + 1;
+
+        generated.push(value);
+    }
+
+
+    itemsInput.value =
+        generated.join(", ");
+
+    resetPacking();
+}
+
+
+/* ============================================
+   EXAMPLE
+============================================ */
+
+function loadExample() {
+
+    if (running) return;
+
+    capacityInput.value = 10;
+
+    itemsInput.value =
+        "2, 5, 4, 7, 1, 3, 8, 6, 2, 5, 4, 7";
+
+    resetPacking();
+}
+
+
+/* ============================================
+   INITIALIZATION
+============================================ */
+
+parseInput();
+
+renderItems();
+
+updateLiveStats();
+
+</script>
+
+</body>
+</html>
+```

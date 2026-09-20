@@ -1,0 +1,2009 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSP - Branch and Bound Visualizer</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #fff;
+        background:
+            radial-gradient(circle at 10% 10%, rgba(99,102,241,.28), transparent 30%),
+            radial-gradient(circle at 90% 10%, rgba(236,72,153,.22), transparent 30%),
+            radial-gradient(circle at 50% 100%, rgba(6,182,212,.18), transparent 35%),
+            #070b16;
+        padding: 28px;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: auto;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 7px 17px;
+        border-radius: 30px;
+        background: rgba(99,102,241,.13);
+        border: 1px solid rgba(129,140,248,.3);
+        color: #c7d2fe;
+        font-size: 12px;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+    }
+
+    h1 {
+        font-size: clamp(30px, 5vw, 58px);
+        font-weight: 850;
+        background: linear-gradient(90deg, #818cf8, #f472b6, #22d3ee);
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 10px;
+    }
+
+    header p {
+        color: #9ca8bf;
+        font-size: 15px;
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 22px;
+    }
+
+    .card {
+        background: rgba(15,23,42,.72);
+        border: 1px solid rgba(148,163,184,.14);
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        backdrop-filter: blur(18px);
+    }
+
+    .control-card {
+        align-self: start;
+        position: sticky;
+        top: 20px;
+    }
+
+    .card-title {
+        font-size: 19px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    label {
+        display: block;
+        color: #9ca8bf;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    input[type="number"],
+    textarea {
+        width: 100%;
+        border: 1px solid #334155;
+        outline: none;
+        background: #0b1222;
+        color: #fff;
+        border-radius: 12px;
+        padding: 12px 13px;
+        font-size: 14px;
+    }
+
+    textarea {
+        min-height: 145px;
+        resize: vertical;
+        font-family: monospace;
+        line-height: 1.7;
+    }
+
+    input:focus,
+    textarea:focus {
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(129,140,248,.1);
+    }
+
+    .control-group {
+        margin-bottom: 18px;
+    }
+
+    .hint {
+        color: #64748b;
+        font-size: 11px;
+        margin-top: 6px;
+        line-height: 1.5;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        margin-top: 18px;
+    }
+
+    button {
+        border: none;
+        color: white;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+    }
+
+    button:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .primary {
+        background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    }
+
+    .pause {
+        background: linear-gradient(135deg,#ec4899,#f43f5e);
+    }
+
+    .secondary {
+        background: #1e293b;
+        border: 1px solid #334155;
+    }
+
+    .danger {
+        background: #3f1d2e;
+        border: 1px solid #7f1d4d;
+    }
+
+    .speed-area {
+        margin-top: 18px;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: #818cf8;
+    }
+
+    .speed-label {
+        display: flex;
+        justify-content: space-between;
+        color: #64748b;
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    .info {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 15px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #263449;
+    }
+
+    .info strong {
+        color: #c7d2fe;
+    }
+
+    .info p {
+        color: #8793aa;
+        font-size: 12px;
+        line-height: 1.7;
+        margin-top: 7px;
+    }
+
+    .main-card {
+        min-width: 0;
+    }
+
+    .top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .status {
+        padding: 8px 14px;
+        border-radius: 30px;
+        background: rgba(34,211,238,.08);
+        border: 1px solid rgba(34,211,238,.2);
+        color: #67e8f9;
+        font-size: 12px;
+    }
+
+    .current-path {
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .current-path strong {
+        color: #e2e8f0;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stat {
+        padding: 14px;
+        text-align: center;
+        border-radius: 15px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #253247;
+    }
+
+    .stat-number {
+        font-size: 23px;
+        font-weight: 800;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .7px;
+        margin-top: 4px;
+    }
+
+    .matrix-title {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .matrix-wrapper {
+        overflow-x: auto;
+        margin-bottom: 22px;
+    }
+
+    table {
+        border-collapse: separate;
+        border-spacing: 4px;
+        width: 100%;
+        min-width: 430px;
+    }
+
+    th,
+    td {
+        min-width: 48px;
+        height: 42px;
+        text-align: center;
+        border-radius: 8px;
+    }
+
+    th {
+        background: #1e293b;
+        color: #a5b4fc;
+        font-size: 12px;
+    }
+
+    td {
+        background: #0b1222;
+        border: 1px solid #243044;
+        color: #cbd5e1;
+        font-size: 13px;
+        transition: .2s;
+    }
+
+    td.diagonal {
+        color: #475569;
+        background: #111827;
+    }
+
+    td.active-edge {
+        background: rgba(99,102,241,.28);
+        border-color: #818cf8;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(99,102,241,.25);
+    }
+
+    .visual-area {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .graph-container {
+        min-height: 500px;
+        border-radius: 18px;
+        background:
+            radial-gradient(circle at center, rgba(99,102,241,.08), transparent 55%),
+            #080d1a;
+        border: 1px solid #243044;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #graph {
+        width: 100%;
+        height: 500px;
+        display: block;
+    }
+
+    .side-results {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .result-box {
+        border-radius: 17px;
+        padding: 17px;
+        background: rgba(2,6,23,.55);
+        border: 1px solid #253247;
+    }
+
+    .result-box h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .optimal-cost {
+        font-size: 34px;
+        font-weight: 850;
+        background: linear-gradient(90deg,#22d3ee,#818cf8);
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .optimal-path {
+        color: #cbd5e1;
+        line-height: 1.9;
+        font-family: monospace;
+        font-size: 13px;
+        word-break: break-word;
+    }
+
+    .branch-log {
+        max-height: 260px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .log-item {
+        padding: 8px 10px;
+        border-radius: 9px;
+        background: #0b1222;
+        border: 1px solid #202c40;
+        color: #94a3b8;
+        font-family: monospace;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .log-item.explored {
+        border-left: 3px solid #22c55e;
+    }
+
+    .log-item.pruned {
+        border-left: 3px solid #ef4444;
+    }
+
+    .log-item.best {
+        border-left: 3px solid #22d3ee;
+    }
+
+    .complexity {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 15px;
+        background: linear-gradient(
+            135deg,
+            rgba(99,102,241,.08),
+            rgba(236,72,153,.06)
+        );
+        border: 1px solid rgba(129,140,248,.14);
+    }
+
+    .complexity h3 {
+        font-size: 14px;
+        margin-bottom: 7px;
+    }
+
+    .complexity p {
+        color: #8995ab;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    footer {
+        text-align: center;
+        color: #475569;
+        font-size: 11px;
+        margin-top: 25px;
+    }
+
+    @media (max-width: 1050px) {
+        .visual-area {
+            grid-template-columns: 1fr;
+        }
+
+        .side-results {
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+        }
+    }
+
+    @media (max-width: 850px) {
+        .layout {
+            grid-template-columns: 1fr;
+        }
+
+        .control-card {
+            position: static;
+        }
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 14px;
+        }
+
+        .stats {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .side-results {
+            grid-template-columns: 1fr;
+        }
+
+        .button-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .graph-container,
+        #graph {
+            height: 420px;
+            min-height: 420px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <div class="badge">🧭 BRANCH & BOUND ALGORITHM VISUALIZER</div>
+    <h1>Travelling Salesman Problem</h1>
+    <p>Find the optimal Hamiltonian cycle using Branch and Bound.</p>
+</header>
+
+<div class="layout">
+
+    <!-- CONTROL PANEL -->
+    <div class="card control-card">
+
+        <div class="card-title">⚙️ Problem Setup</div>
+
+        <div class="control-group">
+            <label for="cityCount">Number of Cities</label>
+            <input
+                type="number"
+                id="cityCount"
+                min="2"
+                max="9"
+                value="5"
+            >
+            <div class="hint">
+                Recommended: 4–8 cities for smooth visualization.
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="matrixInput">Cost / Distance Matrix</label>
+
+            <textarea id="matrixInput">0 10 15 20 25
+10 0 35 25 17
+15 35 0 30 28
+20 25 30 0 16
+25 17 28 16 0</textarea>
+
+            <div class="hint">
+                Enter one row per city. Separate values with spaces.
+                Diagonal values should be 0.
+            </div>
+        </div>
+
+        <div class="button-grid">
+
+            <button class="secondary"
+                    onclick="generateRandomMatrix()">
+                🎲 Random
+            </button>
+
+            <button class="secondary"
+                    onclick="loadExample()">
+                📋 Example
+            </button>
+
+            <button class="primary"
+                    id="startBtn"
+                    onclick="startTSP()">
+                ▶ Start
+            </button>
+
+            <button class="pause"
+                    id="pauseBtn"
+                    onclick="togglePause()"
+                    disabled>
+                ⏸ Pause
+            </button>
+
+            <button class="danger"
+                    onclick="resetTSP()">
+                ↻ Reset
+            </button>
+
+        </div>
+
+        <div class="speed-area">
+
+            <label>Animation Speed</label>
+
+            <input
+                type="range"
+                id="speed"
+                min="50"
+                max="1000"
+                step="50"
+                value="300"
+            >
+
+            <div class="speed-label">
+                <span>Fast</span>
+                <span id="speedText">300 ms</span>
+                <span>Slow</span>
+            </div>
+
+        </div>
+
+        <div class="info">
+
+            <strong>💡 Branch and Bound</strong>
+
+            <p>
+                The algorithm builds possible tours recursively.
+                A lower bound is calculated for every partial path.
+                If the bound is already greater than the best solution
+                found so far, that branch is pruned.
+            </p>
+
+        </div>
+
+        <div class="complexity">
+
+            <h3>📊 Complexity</h3>
+
+            <p>
+                <strong>Worst Case:</strong> O(n!)<br>
+                <strong>Space:</strong> O(n)<br>
+                <strong>Technique:</strong> Branch and Bound
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAIN AREA -->
+    <div class="card main-card">
+
+        <div class="top-row">
+
+            <div class="status" id="status">
+                Ready to solve
+            </div>
+
+            <div class="current-path">
+                Current Branch:
+                <strong id="currentPath">—</strong>
+            </div>
+
+        </div>
+
+
+        <!-- STATISTICS -->
+
+        <div class="stats">
+
+            <div class="stat">
+                <div class="stat-number" id="nodesVisited">0</div>
+                <div class="stat-label">Nodes Visited</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-number" id="branchesPruned">0</div>
+                <div class="stat-label">Branches Pruned</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-number" id="toursChecked">0</div>
+                <div class="stat-label">Tours Checked</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-number" id="bestCost">∞</div>
+                <div class="stat-label">Best Cost</div>
+            </div>
+
+        </div>
+
+
+        <!-- MATRIX -->
+
+        <div class="matrix-title">
+            📐 Cost Matrix
+        </div>
+
+        <div class="matrix-wrapper">
+            <table id="matrixTable"></table>
+        </div>
+
+
+        <!-- GRAPH + RESULTS -->
+
+        <div class="visual-area">
+
+            <div class="graph-container">
+                <canvas id="graph"></canvas>
+            </div>
+
+
+            <div class="side-results">
+
+                <div class="result-box">
+
+                    <h3>🏆 Optimal Cost</h3>
+
+                    <div class="optimal-cost" id="optimalCost">
+                        ∞
+                    </div>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <h3>🛣️ Optimal Tour</h3>
+
+                    <div class="optimal-path" id="optimalPath">
+                        No tour found yet.
+                    </div>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <h3>🌳 Search Activity</h3>
+
+                    <div class="branch-log" id="branchLog">
+
+                        <div class="log-item">
+                            Waiting for algorithm...
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    Travelling Salesman Problem • Branch and Bound • Algorithm Visualization
+</footer>
+
+</div>
+
+
+<script>
+
+/* ============================================
+   GLOBAL VARIABLES
+============================================ */
+
+let n = 5;
+let cost = [];
+
+let bestCost = Infinity;
+let bestPath = [];
+
+let nodesVisited = 0;
+let branchesPruned = 0;
+let toursChecked = 0;
+
+let running = false;
+let paused = false;
+let runId = 0;
+
+
+/* ============================================
+   DOM ELEMENTS
+============================================ */
+
+const cityCount = document.getElementById("cityCount");
+const matrixInput = document.getElementById("matrixInput");
+
+const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+
+const speed = document.getElementById("speed");
+const speedText = document.getElementById("speedText");
+
+const statusText = document.getElementById("status");
+const currentPathText = document.getElementById("currentPath");
+
+const nodesVisitedText =
+    document.getElementById("nodesVisited");
+
+const branchesPrunedText =
+    document.getElementById("branchesPruned");
+
+const toursCheckedText =
+    document.getElementById("toursChecked");
+
+const bestCostText =
+    document.getElementById("bestCost");
+
+const optimalCostText =
+    document.getElementById("optimalCost");
+
+const optimalPathText =
+    document.getElementById("optimalPath");
+
+const matrixTable =
+    document.getElementById("matrixTable");
+
+const branchLog =
+    document.getElementById("branchLog");
+
+const canvas =
+    document.getElementById("graph");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+/* ============================================
+   SPEED
+============================================ */
+
+speed.addEventListener("input", () => {
+    speedText.textContent =
+        speed.value + " ms";
+});
+
+
+/* ============================================
+   DELAY
+============================================ */
+
+function delay(ms) {
+
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+
+}
+
+
+/* ============================================
+   PAUSE HANDLING
+============================================ */
+
+async function waitIfPaused(id) {
+
+    while (paused && running && id === runId) {
+        await delay(100);
+    }
+
+}
+
+
+/* ============================================
+   MATRIX PARSER
+============================================ */
+
+function parseMatrix() {
+
+    n = parseInt(cityCount.value);
+
+    if (n < 2 || n > 9) {
+
+        alert("Please choose between 2 and 9 cities.");
+
+        return false;
+    }
+
+    const rows =
+        matrixInput.value.trim().split("\n");
+
+    if (rows.length !== n) {
+
+        alert(
+            `Please enter exactly ${n} rows in the matrix.`
+        );
+
+        return false;
+    }
+
+    const parsed = [];
+
+    for (let i = 0; i < n; i++) {
+
+        const values =
+            rows[i].trim().split(/\s+/).map(Number);
+
+        if (values.length !== n) {
+
+            alert(
+                `Row ${i + 1} must contain exactly ${n} values.`
+            );
+
+            return false;
+        }
+
+        if (values.some(v => !Number.isFinite(v) || v < 0)) {
+
+            alert(
+                "Matrix values must be non-negative numbers."
+            );
+
+            return false;
+        }
+
+        parsed.push(values);
+    }
+
+    for (let i = 0; i < n; i++) {
+
+        if (parsed[i][i] !== 0) {
+
+            alert(
+                `Diagonal value at (${i + 1}, ${i + 1}) should be 0.`
+            );
+
+            return false;
+        }
+    }
+
+    cost = parsed;
+
+    return true;
+}
+
+
+/* ============================================
+   DISPLAY MATRIX
+============================================ */
+
+function renderMatrix(activeFrom = -1, activeTo = -1) {
+
+    matrixTable.innerHTML = "";
+
+    const headerRow =
+        document.createElement("tr");
+
+    const corner =
+        document.createElement("th");
+
+    corner.textContent = "City";
+
+    headerRow.appendChild(corner);
+
+    for (let j = 0; j < n; j++) {
+
+        const th =
+            document.createElement("th");
+
+        th.textContent = j + 1;
+
+        headerRow.appendChild(th);
+    }
+
+    matrixTable.appendChild(headerRow);
+
+
+    for (let i = 0; i < n; i++) {
+
+        const row =
+            document.createElement("tr");
+
+        const rowHeader =
+            document.createElement("th");
+
+        rowHeader.textContent =
+            i + 1;
+
+        row.appendChild(rowHeader);
+
+
+        for (let j = 0; j < n; j++) {
+
+            const cell =
+                document.createElement("td");
+
+            cell.textContent =
+                cost[i][j];
+
+            if (i === j) {
+                cell.classList.add("diagonal");
+            }
+
+            if (
+                i === activeFrom &&
+                j === activeTo
+            ) {
+                cell.classList.add("active-edge");
+            }
+
+            row.appendChild(cell);
+        }
+
+        matrixTable.appendChild(row);
+    }
+}
+
+
+/* ============================================
+   STATISTICS
+============================================ */
+
+function updateStats() {
+
+    nodesVisitedText.textContent =
+        nodesVisited;
+
+    branchesPrunedText.textContent =
+        branchesPruned;
+
+    toursCheckedText.textContent =
+        toursChecked;
+
+    bestCostText.textContent =
+        bestCost === Infinity ? "∞" : bestCost;
+
+    optimalCostText.textContent =
+        bestCost === Infinity ? "∞" : bestCost;
+
+    if (bestPath.length > 0) {
+
+        optimalPathText.textContent =
+            bestPath.map(x => x + 1).join(" → ");
+
+    } else {
+
+        optimalPathText.textContent =
+            "No tour found yet.";
+    }
+}
+
+
+/* ============================================
+   LOG
+============================================ */
+
+function clearLog() {
+
+    branchLog.innerHTML = "";
+}
+
+
+function addLog(message, type = "") {
+
+    const item =
+        document.createElement("div");
+
+    item.className =
+        "log-item " + type;
+
+    item.textContent =
+        message;
+
+    branchLog.prepend(item);
+
+    while (branchLog.children.length > 30) {
+        branchLog.removeChild(
+            branchLog.lastChild
+        );
+    }
+}
+
+
+/* ============================================
+   LOWER BOUND
+============================================ */
+
+/*
+    A simple lower bound:
+
+    For every city, take the minimum outgoing
+    edge. Half of their total gives a lower
+    bound for a complete tour.
+
+    During branching we additionally include
+    the cost already accumulated.
+*/
+
+function calculateLowerBound(path, currentCost) {
+
+    let bound = currentCost;
+
+    const visited =
+        new Set(path);
+
+    /*
+       For every unvisited city, find the
+       cheapest edge leading to another city.
+    */
+
+    for (let i = 0; i < n; i++) {
+
+        if (!visited.has(i)) {
+
+            let minimum = Infinity;
+
+            for (let j = 0; j < n; j++) {
+
+                if (i !== j) {
+
+                    minimum =
+                        Math.min(
+                            minimum,
+                            cost[i][j]
+                        );
+                }
+            }
+
+            bound += minimum;
+        }
+    }
+
+    /*
+       Add one cheap outgoing possibility
+       for the current city.
+    */
+
+    const current =
+        path[path.length - 1];
+
+    if (current !== undefined) {
+
+        let minimum = Infinity;
+
+        for (let j = 0; j < n; j++) {
+
+            if (
+                j !== current &&
+                !visited.has(j)
+            ) {
+
+                minimum =
+                    Math.min(
+                        minimum,
+                        cost[current][j]
+                    );
+            }
+        }
+
+        if (minimum !== Infinity) {
+            bound += minimum;
+        }
+    }
+
+    return bound;
+}
+
+
+/* ============================================
+   BRANCH AND BOUND
+============================================ */
+
+async function branchAndBound(
+    path,
+    currentCost,
+    visited,
+    id
+) {
+
+    if (!running || id !== runId) {
+        return;
+    }
+
+    await waitIfPaused(id);
+
+    if (!running || id !== runId) {
+        return;
+    }
+
+    nodesVisited++;
+
+    updateStats();
+
+
+    /*
+       BASE CASE
+       All cities have been visited.
+    */
+
+    if (path.length === n) {
+
+        const last =
+            path[path.length - 1];
+
+        const first =
+            path[0];
+
+        const returnCost =
+            cost[last][first];
+
+        const totalCost =
+            currentCost + returnCost;
+
+        toursChecked++;
+
+        currentPathText.textContent =
+            path
+                .map(x => x + 1)
+                .join(" → ")
+            + " → "
+            + (first + 1);
+
+        renderGraph(path, true);
+
+        addLog(
+            `Complete tour: ${path.map(x => x + 1).join(" → ")} → ${first + 1} | Cost = ${totalCost}`,
+            "explored"
+        );
+
+        if (totalCost < bestCost) {
+
+            bestCost = totalCost;
+            bestPath = [
+                ...path,
+                first
+            ];
+
+            addLog(
+                `🏆 New best solution: Cost = ${bestCost}`,
+                "best"
+            );
+
+            renderGraph(bestPath, true);
+            updateStats();
+
+        }
+
+        await delay(
+            Number(speed.value)
+        );
+
+        return;
+    }
+
+
+    /*
+       TRY EVERY UNVISITED CITY
+    */
+
+    const current =
+        path[path.length - 1];
+
+
+    for (let next = 0; next < n; next++) {
+
+        await waitIfPaused(id);
+
+        if (!running || id !== runId) {
+            return;
+        }
+
+        if (visited.has(next)) {
+            continue;
+        }
+
+
+        const newCost =
+            currentCost + cost[current][next];
+
+        const newPath =
+            [...path, next];
+
+
+        currentPathText.textContent =
+            newPath
+                .map(x => x + 1)
+                .join(" → ");
+
+
+        renderGraph(newPath);
+
+        renderMatrix(current, next);
+
+
+        /*
+           Calculate lower bound.
+        */
+
+        const bound =
+            calculateLowerBound(
+                newPath,
+                newCost
+            );
+
+
+        if (bound >= bestCost) {
+
+            branchesPruned++;
+
+            addLog(
+                `✂ Pruned ${newPath.map(x => x + 1).join(" → ")} | Bound = ${bound} ≥ Best = ${bestCost}`,
+                "pruned"
+            );
+
+            updateStats();
+
+            await delay(
+                Number(speed.value)
+            );
+
+            continue;
+        }
+
+
+        /*
+           Explore this branch.
+        */
+
+        addLog(
+            `→ Explore ${newPath.map(x => x + 1).join(" → ")} | Cost = ${newCost} | Bound = ${bound}`,
+            "explored"
+        );
+
+        updateStats();
+
+        await delay(
+            Number(speed.value)
+        );
+
+
+        visited.add(next);
+
+        await branchAndBound(
+            newPath,
+            newCost,
+            visited,
+            id
+        );
+
+        visited.delete(next);
+
+        if (!running || id !== runId) {
+            return;
+        }
+    }
+}
+
+
+/* ============================================
+   START TSP
+============================================ */
+
+async function startTSP() {
+
+    if (running) return;
+
+    if (!parseMatrix()) {
+        return;
+    }
+
+    bestCost = Infinity;
+    bestPath = [];
+
+    nodesVisited = 0;
+    branchesPruned = 0;
+    toursChecked = 0;
+
+    running = true;
+    paused = false;
+
+    runId++;
+
+    const id =
+        runId;
+
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+
+    cityCount.disabled = true;
+    matrixInput.disabled = true;
+
+    clearLog();
+
+    renderMatrix();
+
+    updateStats();
+
+    statusText.textContent =
+        "🚀 Starting Branch and Bound...";
+
+    addLog(
+        "Starting search from City 1..."
+    );
+
+    await delay(500);
+
+
+    /*
+       Start from City 1 (index 0).
+    */
+
+    const path = [0];
+
+    const visited =
+        new Set([0]);
+
+    renderGraph(path);
+
+    await branchAndBound(
+        path,
+        0,
+        visited,
+        id
+    );
+
+
+    if (running && id === runId) {
+
+        running = false;
+        paused = false;
+
+        statusText.textContent =
+            `✅ Completed — Optimal Cost: ${bestCost}`;
+
+        currentPathText.textContent =
+            bestPath.length > 0
+                ? bestPath.map(x => x + 1).join(" → ")
+                : "No tour";
+
+        renderGraph(bestPath, true);
+
+        updateStats();
+
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+
+        cityCount.disabled = false;
+        matrixInput.disabled = false;
+
+        addLog(
+            `🏁 Search complete. Optimal tour cost = ${bestCost}`,
+            "best"
+        );
+    }
+}
+
+
+/* ============================================
+   PAUSE / RESUME
+============================================ */
+
+function togglePause() {
+
+    if (!running) return;
+
+    paused = !paused;
+
+    if (paused) {
+
+        pauseBtn.textContent =
+            "▶ Resume";
+
+        statusText.textContent =
+            "⏸ Search paused";
+
+    } else {
+
+        pauseBtn.textContent =
+            "⏸ Pause";
+
+        statusText.textContent =
+            "▶ Search resumed";
+    }
+}
+
+
+/* ============================================
+   RESET
+============================================ */
+
+function resetTSP() {
+
+    runId++;
+
+    running = false;
+    paused = false;
+
+    cityCount.disabled = false;
+    matrixInput.disabled = false;
+
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+
+    pauseBtn.textContent =
+        "⏸ Pause";
+
+    bestCost = Infinity;
+    bestPath = [];
+
+    nodesVisited = 0;
+    branchesPruned = 0;
+    toursChecked = 0;
+
+    statusText.textContent =
+        "Ready to solve";
+
+    currentPathText.textContent =
+        "—";
+
+    clearLog();
+
+    branchLog.innerHTML = `
+        <div class="log-item">
+            Waiting for algorithm...
+        </div>
+    `;
+
+    if (parseMatrix()) {
+        renderMatrix();
+    }
+
+    updateStats();
+
+    drawGraphBase();
+}
+
+
+/* ============================================
+   RANDOM MATRIX
+============================================ */
+
+function generateRandomMatrix() {
+
+    if (running) return;
+
+    n =
+        parseInt(cityCount.value);
+
+    if (n < 2 || n > 9) {
+
+        alert(
+            "Choose between 2 and 9 cities."
+        );
+
+        return;
+    }
+
+    const matrix =
+        Array.from(
+            { length: n },
+            () => Array(n).fill(0)
+        );
+
+
+    /*
+       Create symmetric distances.
+       This represents an undirected TSP.
+    */
+
+    for (let i = 0; i < n; i++) {
+
+        for (let j = i + 1; j < n; j++) {
+
+            const value =
+                Math.floor(
+                    Math.random() * 40
+                ) + 5;
+
+            matrix[i][j] = value;
+            matrix[j][i] = value;
+        }
+    }
+
+    matrixInput.value =
+        matrix
+            .map(row => row.join(" "))
+            .join("\n");
+
+    parseMatrix();
+
+    renderMatrix();
+
+    resetVisualOnly();
+}
+
+
+/* ============================================
+   EXAMPLE
+============================================ */
+
+function loadExample() {
+
+    if (running) return;
+
+    cityCount.value = 5;
+
+    matrixInput.value =
+`0 10 15 20 25
+10 0 35 25 17
+15 35 0 30 28
+20 25 30 0 16
+25 17 28 16 0`;
+
+    parseMatrix();
+
+    renderMatrix();
+
+    resetVisualOnly();
+}
+
+
+/* ============================================
+   RESET VISUAL STATE ONLY
+============================================ */
+
+function resetVisualOnly() {
+
+    bestCost = Infinity;
+    bestPath = [];
+
+    nodesVisited = 0;
+    branchesPruned = 0;
+    toursChecked = 0;
+
+    statusText.textContent =
+        "Ready to solve";
+
+    currentPathText.textContent =
+        "—";
+
+    clearLog();
+
+    branchLog.innerHTML = `
+        <div class="log-item">
+            Waiting for algorithm...
+        </div>
+    `;
+
+    updateStats();
+
+    drawGraphBase();
+}
+
+
+/* ============================================
+   GRAPH DRAWING
+============================================ */
+
+function resizeCanvas() {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const ratio =
+        window.devicePixelRatio || 1;
+
+    canvas.width =
+        rect.width * ratio;
+
+    canvas.height =
+        rect.height * ratio;
+
+    ctx.setTransform(
+        ratio,
+        0,
+        0,
+        ratio,
+        0,
+        0
+    );
+}
+
+
+function getCityPositions() {
+
+    const width =
+        canvas.clientWidth;
+
+    const height =
+        canvas.clientHeight;
+
+    const centerX =
+        width / 2;
+
+    const centerY =
+        height / 2;
+
+    const radius =
+        Math.min(width, height) * .34;
+
+    const positions = [];
+
+    for (let i = 0; i < n; i++) {
+
+        const angle =
+            -Math.PI / 2 +
+            (2 * Math.PI * i / n);
+
+        positions.push({
+            x:
+                centerX +
+                radius * Math.cos(angle),
+
+            y:
+                centerY +
+                radius * Math.sin(angle)
+        });
+    }
+
+    return positions;
+}
+
+
+function drawGraphBase() {
+
+    resizeCanvas();
+
+    const width =
+        canvas.clientWidth;
+
+    const height =
+        canvas.clientHeight;
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    if (!cost.length) return;
+
+    const positions =
+        getCityPositions();
+
+
+    /*
+       Draw all edges.
+    */
+
+    for (let i = 0; i < n; i++) {
+
+        for (let j = i + 1; j < n; j++) {
+
+            drawEdge(
+                positions[i],
+                positions[j],
+                String(cost[i][j]),
+                false
+            );
+        }
+    }
+
+
+    /*
+       Draw cities.
+    */
+
+    for (let i = 0; i < n; i++) {
+
+        drawCity(
+            positions[i],
+            i,
+            false
+        );
+    }
+}
+
+
+function drawEdge(
+    a,
+    b,
+    label,
+    active
+) {
+
+    ctx.beginPath();
+
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+
+    ctx.lineWidth =
+        active ? 4 : 1;
+
+    ctx.strokeStyle =
+        active
+            ? "#67e8f9"
+            : "rgba(100,116,139,.28)";
+
+    ctx.stroke();
+
+
+    /*
+       Weight label
+    */
+
+    const midX =
+        (a.x + b.x) / 2;
+
+    const midY =
+        (a.y + b.y) / 2;
+
+    ctx.fillStyle =
+        active
+            ? "#fff"
+            : "#64748b";
+
+    ctx.font =
+        active
+            ? "bold 11px Arial"
+            : "10px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.fillText(
+        label,
+        midX,
+        midY - 5
+    );
+}
+
+
+function drawCity(
+    pos,
+    index,
+    active
+) {
+
+    ctx.beginPath();
+
+    ctx.arc(
+        pos.x,
+        pos.y,
+        25,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle =
+        active
+            ? "#6366f1"
+            : "#172033";
+
+    ctx.fill();
+
+    ctx.lineWidth = 2;
+
+    ctx.strokeStyle =
+        active
+            ? "#a5b4fc"
+            : "#475569";
+
+    ctx.stroke();
+
+
+    ctx.fillStyle =
+        "#fff";
+
+    ctx.font =
+        "bold 14px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.fillText(
+        index + 1,
+        pos.x,
+        pos.y
+    );
+}
+
+
+/* ============================================
+   DRAW CURRENT TOUR
+============================================ */
+
+function renderGraph(
+    path = [],
+    complete = false
+) {
+
+    resizeCanvas();
+
+    const width =
+        canvas.clientWidth;
+
+    const height =
+        canvas.clientHeight;
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    if (!cost.length) return;
+
+    const positions =
+        getCityPositions();
+
+
+    /*
+       Draw inactive edges first.
+    */
+
+    for (let i = 0; i < n; i++) {
+
+        for (let j = i + 1; j < n; j++) {
+
+            drawEdge(
+                positions[i],
+                positions[j],
+                String(cost[i][j]),
+                false
+            );
+        }
+    }
+
+
+    /*
+       Highlight current path.
+    */
+
+    if (path.length >= 2) {
+
+        for (let i = 0; i < path.length - 1; i++) {
+
+            const from =
+                path[i];
+
+            const to =
+                path[i + 1];
+
+            drawEdge(
+                positions[from],
+                positions[to],
+                String(cost[from][to]),
+                true
+            );
+        }
+    }
+
+
+    /*
+       If complete, draw return edge.
+    */
+
+    if (
+        complete &&
+        path.length === n + 1
+    ) {
+
+        const from =
+            path[path.length - 2];
+
+        const to =
+            path[path.length - 1];
+
+        drawEdge(
+            positions[from],
+            positions[to],
+            String(cost[from][to]),
+            true
+        );
+    }
+
+
+    /*
+       Draw cities.
+    */
+
+    for (let i = 0; i < n; i++) {
+
+        drawCity(
+            positions[i],
+            i,
+            path.includes(i)
+        );
+    }
+}
+
+
+/* ============================================
+   WINDOW RESIZE
+============================================ */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        if (cost.length) {
+
+            if (bestPath.length > 0) {
+
+                renderGraph(
+                    bestPath,
+                    true
+                );
+
+            } else {
+
+                drawGraphBase();
+            }
+        }
+    }
+);
+
+
+/* ============================================
+   INITIALIZATION
+============================================ */
+
+parseMatrix();
+
+renderMatrix();
+
+updateStats();
+
+drawGraphBase();
+
+</script>
+
+</body>
+</html>
+```

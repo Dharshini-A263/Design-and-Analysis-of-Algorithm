@@ -1,0 +1,1280 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Randomized Quick Sort Visualizer</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
+        color: #fff;
+        background:
+            radial-gradient(circle at top left, #243b55 0%, transparent 35%),
+            radial-gradient(circle at bottom right, #4b134f 0%, transparent 35%),
+            linear-gradient(135deg, #070b18, #111827 55%, #0b1020);
+        padding: 25px;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: auto;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    header h1 {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+    }
+
+    header p {
+        color: #aab4cf;
+        font-size: 1.05rem;
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 15px 45px rgba(0,0,0,.25);
+    }
+
+    .controls {
+        padding: 22px;
+        margin-bottom: 22px;
+    }
+
+    .controls-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    label {
+        color: #cbd5e1;
+        font-weight: 600;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 13px 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.15);
+        outline: none;
+        background: rgba(0,0,0,.3);
+        color: white;
+        font-size: 15px;
+    }
+
+    input:focus, select:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96,165,250,.15);
+    }
+
+    option {
+        background: #111827;
+        color: white;
+    }
+
+    .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    button {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .25s;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.12);
+    }
+
+    .primary {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+    }
+
+    .success {
+        background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .pink {
+        background: linear-gradient(135deg, #db2777, #9333ea);
+    }
+
+    .warning {
+        background: linear-gradient(135deg, #d97706, #ef4444);
+    }
+
+    .secondary {
+        background: rgba(255,255,255,.1);
+    }
+
+    .speed {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .speed input {
+        flex: 1;
+        padding: 0;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .stat {
+        padding: 18px;
+        text-align: center;
+    }
+
+    .stat .value {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #93c5fd;
+    }
+
+    .stat .label {
+        font-size: .85rem;
+        color: #94a3b8;
+    }
+
+    .visual-section {
+        padding: 22px;
+        margin-bottom: 22px;
+    }
+
+    .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 10px;
+    }
+
+    .section-title h2 {
+        font-size: 1.25rem;
+    }
+
+    .status {
+        color: #93c5fd;
+        font-weight: 600;
+    }
+
+    #arrayCanvas {
+        width: 100%;
+        height: 420px;
+        display: block;
+        border-radius: 16px;
+        background: rgba(0,0,0,.22);
+        border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 15px;
+        color: #cbd5e1;
+        font-size: .9rem;
+    }
+
+    .legend span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .blue { background: #60a5fa; }
+    .yellow { background: #facc15; }
+    .red { background: #f87171; }
+    .green { background: #34d399; }
+    .purple { background: #c084fc; }
+
+    .comparison {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .algorithm-card {
+        padding: 24px;
+    }
+
+    .algorithm-card h3 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+    }
+
+    .algorithm-card p {
+        color: #94a3b8;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .complexity {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .complexity div {
+        padding: 12px;
+        background: rgba(255,255,255,.05);
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .complexity strong {
+        display: block;
+        color: #a78bfa;
+        margin-bottom: 4px;
+    }
+
+    .complexity span {
+        color: #cbd5e1;
+        font-size: .9rem;
+    }
+
+    .log-panel {
+        padding: 22px;
+        margin-bottom: 22px;
+    }
+
+    #log {
+        height: 210px;
+        overflow-y: auto;
+        background: rgba(0,0,0,.25);
+        border-radius: 12px;
+        padding: 15px;
+        font-family: Consolas, monospace;
+        font-size: .9rem;
+        color: #cbd5e1;
+    }
+
+    .log-entry {
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+
+    .highlight {
+        color: #facc15;
+    }
+
+    footer {
+        text-align: center;
+        padding: 20px;
+        color: #64748b;
+    }
+
+    @media(max-width: 900px) {
+        .stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .comparison,
+        .controls-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media(max-width: 550px) {
+        body {
+            padding: 12px;
+        }
+
+        .stats {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .complexity {
+            grid-template-columns: 1fr;
+        }
+
+        #arrayCanvas {
+            height: 350px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>⚡ Randomized Quick Sort</h1>
+    <p>Interactive visualization of Quick Sort with Randomized Pivot Selection</p>
+</header>
+
+<!-- CONTROLS -->
+<section class="controls glass">
+
+    <div class="controls-grid">
+
+        <div class="field">
+            <label>📊 Array Elements</label>
+            <input
+                id="arrayInput"
+                type="text"
+                value="45, 12, 78, 34, 23, 89, 5, 67, 31, 56"
+                placeholder="Example: 45,12,78,34,23"
+            >
+        </div>
+
+        <div class="field">
+            <label>🔀 Algorithm</label>
+            <select id="algorithm">
+                <option value="random">Randomized Quick Sort</option>
+                <option value="normal">Normal Quick Sort</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="buttons">
+        <button class="primary" onclick="loadArray()">📥 Load Array</button>
+        <button class="success" onclick="randomArray()">🎲 Random Array</button>
+        <button class="pink" onclick="exampleArray()">✨ Example</button>
+        <button class="warning" onclick="startSort()">▶ Start Sorting</button>
+        <button class="secondary" onclick="togglePause()">⏯ Pause / Resume</button>
+        <button class="secondary" onclick="resetVisualization()">↻ Reset</button>
+    </div>
+
+    <div class="speed">
+        <label>Animation Speed</label>
+        <input id="speed" type="range" min="50" max="1000" value="350">
+        <span id="speedValue">350 ms</span>
+    </div>
+
+</section>
+
+<!-- STATS -->
+<section class="stats">
+
+    <div class="stat glass">
+        <div class="value" id="comparisons">0</div>
+        <div class="label">Comparisons</div>
+    </div>
+
+    <div class="stat glass">
+        <div class="value" id="swaps">0</div>
+        <div class="label">Swaps</div>
+    </div>
+
+    <div class="stat glass">
+        <div class="value" id="partitions">0</div>
+        <div class="label">Partitions</div>
+    </div>
+
+    <div class="stat glass">
+        <div class="value" id="recursion">0</div>
+        <div class="label">Recursive Calls</div>
+    </div>
+
+    <div class="stat glass">
+        <div class="value" id="time">0 ms</div>
+        <div class="label">Execution Time</div>
+    </div>
+
+</section>
+
+<!-- VISUALIZATION -->
+<section class="visual-section glass">
+
+    <div class="section-title">
+        <h2>📈 Sorting Visualization</h2>
+        <div class="status" id="status">Ready</div>
+    </div>
+
+    <canvas id="arrayCanvas"></canvas>
+
+    <div class="legend">
+        <span><i class="dot blue"></i> Normal element</span>
+        <span><i class="dot yellow"></i> Pivot</span>
+        <span><i class="dot red"></i> Comparing</span>
+        <span><i class="dot green"></i> Sorted</span>
+        <span><i class="dot purple"></i> Active partition</span>
+    </div>
+
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison">
+
+    <div class="algorithm-card glass">
+
+        <h3>🔵 Normal Quick Sort</h3>
+
+        <p>
+            Uses a deterministic pivot, here chosen as the last element
+            of each partition. Poor pivot choices can produce highly
+            unbalanced partitions.
+        </p>
+
+        <div class="complexity">
+            <div>
+                <strong>Best</strong>
+                <span>O(n log n)</span>
+            </div>
+
+            <div>
+                <strong>Average</strong>
+                <span>O(n log n)</span>
+            </div>
+
+            <div>
+                <strong>Worst</strong>
+                <span>O(n²)</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="algorithm-card glass">
+
+        <h3>🟣 Randomized Quick Sort</h3>
+
+        <p>
+            Selects the pivot randomly before partitioning. Randomization
+            reduces the dependence on the original ordering of the input.
+        </p>
+
+        <div class="complexity">
+            <div>
+                <strong>Expected</strong>
+                <span>O(n log n)</span>
+            </div>
+
+            <div>
+                <strong>Worst</strong>
+                <span>O(n²)</span>
+            </div>
+
+            <div>
+                <strong>Space</strong>
+                <span>O(log n)*</span>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- LOG -->
+<section class="log-panel glass">
+
+    <div class="section-title">
+        <h2>🧠 Algorithm Activity</h2>
+    </div>
+
+    <div id="log"></div>
+
+</section>
+
+<footer>
+    Randomized Quick Sort • Divide, Randomize, Partition & Conquer
+</footer>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("arrayCanvas");
+const ctx = canvas.getContext("2d");
+
+let array = [];
+let originalArray = [];
+
+let comparisons = 0;
+let swaps = 0;
+let partitions = 0;
+let recursionCalls = 0;
+
+let pivotIndex = -1;
+let compareIndices = [];
+let activeRange = [];
+let sortedIndices = new Set();
+
+let paused = false;
+let sorting = false;
+let stopRequested = false;
+
+let startTime = 0;
+
+const speedSlider = document.getElementById("speed");
+const speedValue = document.getElementById("speedValue");
+
+speedSlider.addEventListener("input", () => {
+    speedValue.textContent = speedSlider.value + " ms";
+});
+
+
+// --------------------------------------------------
+// CANVAS RESIZE
+// --------------------------------------------------
+
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    drawArray();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+
+// --------------------------------------------------
+// LOAD ARRAY
+// --------------------------------------------------
+
+function loadArray() {
+
+    if (sorting) return;
+
+    const input = document.getElementById("arrayInput").value;
+
+    const values = input
+        .split(",")
+        .map(x => Number(x.trim()))
+        .filter(x => Number.isFinite(x));
+
+    if (values.length === 0) {
+        alert("Please enter valid numbers.");
+        return;
+    }
+
+    if (values.length > 80) {
+        alert("For smooth visualization, please use 80 or fewer elements.");
+        return;
+    }
+
+    array = values.slice();
+    originalArray = values.slice();
+
+    resetStats();
+    clearHighlights();
+
+    addLog(`Loaded array with ${array.length} elements.`);
+
+    document.getElementById("status").textContent = "Array Loaded";
+
+    drawArray();
+}
+
+
+// --------------------------------------------------
+// RANDOM ARRAY
+// --------------------------------------------------
+
+function randomArray() {
+
+    if (sorting) return;
+
+    const count = Math.floor(Math.random() * 16) + 10;
+
+    array = [];
+
+    for (let i = 0; i < count; i++) {
+        array.push(Math.floor(Math.random() * 95) + 5);
+    }
+
+    originalArray = array.slice();
+
+    document.getElementById("arrayInput").value = array.join(", ");
+
+    resetStats();
+    clearHighlights();
+
+    addLog(`Generated random array with ${count} elements.`);
+
+    document.getElementById("status").textContent = "Random Array Ready";
+
+    drawArray();
+}
+
+
+// --------------------------------------------------
+// EXAMPLE
+// --------------------------------------------------
+
+function exampleArray() {
+
+    if (sorting) return;
+
+    array = [45, 12, 78, 34, 23, 89, 5, 67, 31, 56];
+
+    originalArray = array.slice();
+
+    document.getElementById("arrayInput").value = array.join(", ");
+
+    resetStats();
+    clearHighlights();
+
+    addLog("Example array loaded.");
+
+    document.getElementById("status").textContent = "Example Loaded";
+
+    drawArray();
+}
+
+
+// --------------------------------------------------
+// RESET
+// --------------------------------------------------
+
+function resetVisualization() {
+
+    stopRequested = true;
+    sorting = false;
+    paused = false;
+
+    array = originalArray.slice();
+
+    resetStats();
+    clearHighlights();
+
+    document.getElementById("status").textContent = "Reset";
+
+    addLog("Visualization reset.");
+
+    drawArray();
+}
+
+
+// --------------------------------------------------
+// RESET STATS
+// --------------------------------------------------
+
+function resetStats() {
+
+    comparisons = 0;
+    swaps = 0;
+    partitions = 0;
+    recursionCalls = 0;
+
+    document.getElementById("comparisons").textContent = "0";
+    document.getElementById("swaps").textContent = "0";
+    document.getElementById("partitions").textContent = "0";
+    document.getElementById("recursion").textContent = "0";
+    document.getElementById("time").textContent = "0 ms";
+}
+
+
+// --------------------------------------------------
+// CLEAR HIGHLIGHTS
+// --------------------------------------------------
+
+function clearHighlights() {
+
+    pivotIndex = -1;
+    compareIndices = [];
+    activeRange = [];
+    sortedIndices = new Set();
+}
+
+
+// --------------------------------------------------
+// START SORT
+// --------------------------------------------------
+
+async function startSort() {
+
+    if (sorting) return;
+
+    if (array.length === 0) {
+        loadArray();
+    }
+
+    if (array.length === 0) return;
+
+    sorting = true;
+    stopRequested = false;
+    paused = false;
+
+    resetStats();
+    clearHighlights();
+
+    startTime = performance.now();
+
+    const algorithm =
+        document.getElementById("algorithm").value;
+
+    addLog(
+        algorithm === "random"
+            ? "🚀 Starting Randomized Quick Sort..."
+            : "🚀 Starting Normal Quick Sort..."
+    );
+
+    document.getElementById("status").textContent =
+        algorithm === "random"
+            ? "Randomized Quick Sort Running"
+            : "Normal Quick Sort Running";
+
+    try {
+
+        if (algorithm === "random") {
+            await randomizedQuickSort(0, array.length - 1);
+        } else {
+            await normalQuickSort(0, array.length - 1);
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+
+    if (!stopRequested) {
+
+        for (let i = 0; i < array.length; i++) {
+            sortedIndices.add(i);
+        }
+
+        pivotIndex = -1;
+        compareIndices = [];
+        activeRange = [];
+
+        drawArray();
+
+        const elapsed =
+            Math.round(performance.now() - startTime);
+
+        document.getElementById("time").textContent =
+            elapsed + " ms";
+
+        document.getElementById("status").textContent =
+            "✓ Sorting Complete";
+
+        addLog("🎉 Array successfully sorted!");
+        addLog(`Execution time: ${elapsed} ms`);
+
+    }
+
+    sorting = false;
+}
+
+
+// --------------------------------------------------
+// NORMAL QUICK SORT
+// --------------------------------------------------
+
+async function normalQuickSort(low, high) {
+
+    if (stopRequested) return;
+
+    await waitIfPaused();
+
+    if (low >= high) {
+
+        if (low === high) {
+            sortedIndices.add(low);
+        }
+
+        return;
+    }
+
+    recursionCalls++;
+
+    updateStats();
+
+    activeRange = [low, high];
+
+    addLog(
+        `Partitioning range [${low + 1}, ${high + 1}]`
+    );
+
+    const p = await partition(low, high, false);
+
+    if (stopRequested) return;
+
+    sortedIndices.add(p);
+
+    await normalQuickSort(low, p - 1);
+    await normalQuickSort(p + 1, high);
+}
+
+
+// --------------------------------------------------
+// RANDOMIZED QUICK SORT
+// --------------------------------------------------
+
+async function randomizedQuickSort(low, high) {
+
+    if (stopRequested) return;
+
+    await waitIfPaused();
+
+    if (low >= high) {
+
+        if (low === high) {
+            sortedIndices.add(low);
+        }
+
+        return;
+    }
+
+    recursionCalls++;
+
+    updateStats();
+
+    activeRange = [low, high];
+
+    // Random pivot
+    const randomIndex =
+        low + Math.floor(Math.random() * (high - low + 1));
+
+    pivotIndex = randomIndex;
+
+    addLog(
+        `🎲 Random pivot selected: ${array[randomIndex]} at position ${randomIndex + 1}`
+    );
+
+    drawArray();
+
+    await delay();
+
+    if (stopRequested) return;
+
+    // Move random pivot to end
+    await swap(randomIndex, high);
+
+    const p = await partition(low, high, true);
+
+    if (stopRequested) return;
+
+    sortedIndices.add(p);
+
+    await randomizedQuickSort(low, p - 1);
+    await randomizedQuickSort(p + 1, high);
+}
+
+
+// --------------------------------------------------
+// PARTITION
+// --------------------------------------------------
+
+async function partition(low, high, randomized) {
+
+    partitions++;
+
+    let pivot = array[high];
+
+    pivotIndex = high;
+
+    addLog(
+        `Pivot = ${pivot} | Partition range ${low + 1} → ${high + 1}`
+    );
+
+    drawArray();
+
+    await delay();
+
+    let i = low - 1;
+
+    for (let j = low; j < high; j++) {
+
+        if (stopRequested) return high;
+
+        await waitIfPaused();
+
+        compareIndices = [j, high];
+
+        comparisons++;
+
+        updateStats();
+        drawArray();
+
+        await delay();
+
+        if (array[j] <= pivot) {
+
+            i++;
+
+            if (i !== j) {
+                await swap(i, j);
+            }
+        }
+    }
+
+    await swap(i + 1, high);
+
+    pivotIndex = i + 1;
+
+    addLog(
+        `Pivot ${pivot} placed at position ${i + 2}`
+    );
+
+    drawArray();
+
+    await delay();
+
+    compareIndices = [];
+
+    return i + 1;
+}
+
+
+// --------------------------------------------------
+// SWAP
+// --------------------------------------------------
+
+async function swap(i, j) {
+
+    if (i === j) return;
+
+    const temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+
+    swaps++;
+
+    compareIndices = [i, j];
+
+    updateStats();
+
+    drawArray();
+
+    await delay();
+}
+
+
+// --------------------------------------------------
+// PAUSE SYSTEM
+// --------------------------------------------------
+
+function togglePause() {
+
+    if (!sorting) return;
+
+    paused = !paused;
+
+    document.getElementById("status").textContent =
+        paused ? "⏸ Paused" : "▶ Running";
+
+    addLog(
+        paused
+            ? "⏸ Sorting paused."
+            : "▶ Sorting resumed."
+    );
+}
+
+
+async function waitIfPaused() {
+
+    while (paused && !stopRequested) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+}
+
+
+// --------------------------------------------------
+// DELAY
+// --------------------------------------------------
+
+function delay() {
+
+    return new Promise(resolve => {
+
+        setTimeout(resolve, Number(speedSlider.value));
+
+    });
+}
+
+
+// --------------------------------------------------
+// UPDATE STATS
+// --------------------------------------------------
+
+function updateStats() {
+
+    document.getElementById("comparisons").textContent =
+        comparisons;
+
+    document.getElementById("swaps").textContent =
+        swaps;
+
+    document.getElementById("partitions").textContent =
+        partitions;
+
+    document.getElementById("recursion").textContent =
+        recursionCalls;
+
+    if (startTime) {
+
+        document.getElementById("time").textContent =
+            Math.round(performance.now() - startTime) + " ms";
+    }
+}
+
+
+// --------------------------------------------------
+// DRAW ARRAY
+// --------------------------------------------------
+
+function drawArray() {
+
+    if (!canvas.width) return;
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (array.length === 0) return;
+
+    const maxValue = Math.max(...array);
+
+    const paddingX = 25;
+    const paddingBottom = 45;
+    const topPadding = 30;
+
+    const usableWidth =
+        width - paddingX * 2;
+
+    const gap = array.length <= 30 ? 8 : 3;
+
+    const barWidth =
+        Math.max(
+            3,
+            (usableWidth - gap * (array.length - 1))
+            / array.length
+        );
+
+    array.forEach((value, index) => {
+
+        const barHeight =
+            ((value / maxValue) *
+            (height - topPadding - paddingBottom));
+
+        const x =
+            paddingX + index * (barWidth + gap);
+
+        const y =
+            height - paddingBottom - barHeight;
+
+        // Determine state
+        let fill = "#60a5fa";
+
+        if (activeRange.length === 2 &&
+            index >= activeRange[0] &&
+            index <= activeRange[1]) {
+
+            fill = "#a78bfa";
+        }
+
+        if (sortedIndices.has(index)) {
+            fill = "#34d399";
+        }
+
+        if (compareIndices.includes(index)) {
+            fill = "#f87171";
+        }
+
+        if (index === pivotIndex) {
+            fill = "#facc15";
+        }
+
+        // Glow
+        ctx.shadowBlur =
+            index === pivotIndex ? 18 : 0;
+
+        ctx.shadowColor = fill;
+
+        ctx.fillStyle = fill;
+
+        roundRect(
+            ctx,
+            x,
+            y,
+            barWidth,
+            barHeight,
+            Math.min(6, barWidth / 3)
+        );
+
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        // Value labels
+        if (array.length <= 35) {
+
+            ctx.fillStyle = "#e5e7eb";
+            ctx.font = "bold 12px Segoe UI";
+            ctx.textAlign = "center";
+
+            ctx.fillText(
+                value,
+                x + barWidth / 2,
+                y - 7
+            );
+        }
+
+        // Index
+        if (array.length <= 35) {
+
+            ctx.fillStyle = "#64748b";
+            ctx.font = "10px Segoe UI";
+
+            ctx.fillText(
+                index + 1,
+                x + barWidth / 2,
+                height - 20
+            );
+        }
+
+    });
+}
+
+
+// --------------------------------------------------
+// ROUNDED RECT
+// --------------------------------------------------
+
+function roundRect(ctx, x, y, width, height, radius) {
+
+    ctx.beginPath();
+
+    ctx.moveTo(x + radius, y);
+
+    ctx.lineTo(x + width - radius, y);
+
+    ctx.quadraticCurveTo(
+        x + width,
+        y,
+        x + width,
+        y + radius
+    );
+
+    ctx.lineTo(
+        x + width,
+        y + height - radius
+    );
+
+    ctx.quadraticCurveTo(
+        x + width,
+        y + height,
+        x + width - radius,
+        y + height
+    );
+
+    ctx.lineTo(
+        x + radius,
+        y + height
+    );
+
+    ctx.quadraticCurveTo(
+        x,
+        y + height,
+        x,
+        y + height - radius
+    );
+
+    ctx.lineTo(
+        x,
+        y + radius
+    );
+
+    ctx.quadraticCurveTo(
+        x,
+        y,
+        x + radius,
+        y
+    );
+
+    ctx.closePath();
+}
+
+
+// --------------------------------------------------
+// LOGGING
+// --------------------------------------------------
+
+function addLog(message) {
+
+    const log = document.getElementById("log");
+
+    const entry =
+        document.createElement("div");
+
+    entry.className = "log-entry";
+
+    const time =
+        new Date().toLocaleTimeString();
+
+    entry.innerHTML =
+        `<span class="highlight">[${time}]</span> ${message}`;
+
+    log.appendChild(entry);
+
+    log.scrollTop = log.scrollHeight;
+}
+
+
+// --------------------------------------------------
+// INITIALIZE
+// --------------------------------------------------
+
+window.onload = function() {
+
+    loadArray();
+
+    resizeCanvas();
+
+};
+
+</script>
+
+</body>
+</html>
+```
